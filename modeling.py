@@ -27,7 +27,7 @@ import numpy as np
 import six
 import tensorflow as tf
 
-factor_num = 64
+factor_size = 64
 
 class BertConfig(object):
   """Configuration for `BertModel`."""
@@ -666,7 +666,7 @@ def attention_layer(from_tensor,
   # `query_layer` = [B*F, N*H]
   query_layer_aux = tf.layers.dense(
       from_tensor_2d,
-      factor_num,
+      factor_size,
       activation=None,
       name="query_aux",
       kernel_initializer=create_initializer(initializer_range))
@@ -679,16 +679,30 @@ def attention_layer(from_tensor,
       kernel_initializer=create_initializer(initializer_range))
 
   # `key_layer` = [B*T, N*H]
-  key_layer = tf.layers.dense(
+  key_layer_aux = tf.layers.dense(
       to_tensor_2d,
+      factor_size,
+      activation=None,
+      name="key_aux",
+      kernel_initializer=create_initializer(initializer_range))
+  
+  key_layer = tf.layers.dense(
+      key_layer_aux,
       num_attention_heads * size_per_head,
       activation=key_act,
       name="key",
       kernel_initializer=create_initializer(initializer_range))
 
   # `value_layer` = [B*T, N*H]
-  value_layer = tf.layers.dense(
+  value_layer_aux = tf.layers.dense(
       to_tensor_2d,
+      factor_size,
+      activation=None,
+      name="value_aux",
+      kernel_initializer=create_initializer(initializer_range))
+      
+  value_layer = tf.layers.dense(
+      value_layer_aux,
       num_attention_heads * size_per_head,
       activation=value_act,
       name="value",
@@ -863,6 +877,11 @@ def transformer_model(input_tensor,
         # Run a linear projection of `hidden_size` then add a residual
         # with `layer_input`.
         with tf.variable_scope("output"):
+
+          attention_output = tf.layers.dense(
+              attention_output,
+              factor_size,
+              kernel_initializer=create_initializer(initializer_range))
           attention_output = tf.layers.dense(
               attention_output,
               hidden_size,
@@ -874,6 +893,11 @@ def transformer_model(input_tensor,
       with tf.variable_scope("intermediate"):
         intermediate_output = tf.layers.dense(
             attention_output,
+            factor_size,
+            activation=None,
+            kernel_initializer=create_initializer(initializer_range))
+        intermediate_output = tf.layers.dense(
+            intermediate_output,
             intermediate_size,
             activation=intermediate_act_fn,
             kernel_initializer=create_initializer(initializer_range))
@@ -882,6 +906,10 @@ def transformer_model(input_tensor,
       with tf.variable_scope("output"):
         layer_output = tf.layers.dense(
             intermediate_output,
+            factor_size,
+            kernel_initializer=create_initializer(initializer_range))
+        layer_output = tf.layers.dense(
+            layer_output,
             hidden_size,
             kernel_initializer=create_initializer(initializer_range))
         layer_output = dropout(layer_output, hidden_dropout_prob)
