@@ -664,8 +664,7 @@ def attention_layer(from_tensor,
   to_tensor_2d = reshape_to_matrix(to_tensor)
 
   # `query_layer` = [B*F, N*H]
-  query_layer_aux =
-  tf.layers.dense(
+  query_layer_aux = tf.layers.dense(
       from_tensor_2d,
       factor_num,
       activation=None,
