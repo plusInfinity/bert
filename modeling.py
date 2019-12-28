@@ -27,6 +27,7 @@ import numpy as np
 import six
 import tensorflow as tf
 
+factor_num = 64
 
 class BertConfig(object):
   """Configuration for `BertModel`."""
@@ -663,15 +664,23 @@ def attention_layer(from_tensor,
   to_tensor_2d = reshape_to_matrix(to_tensor)
 
   # `query_layer` = [B*F, N*H]
-  query_layer = tf.keras.layers.Dense(
+  query_layer_aux =
+  tf.layers.dense(
       from_tensor_2d,
+      factor_num,
+      activation=None,
+      name="query_aux",
+      kernel_initializer=create_initializer(initializer_range))
+  
+  query_layer = tf.layers.dense(
+      query_layer_aux,
       num_attention_heads * size_per_head,
       activation=query_act,
       name="query",
       kernel_initializer=create_initializer(initializer_range))
 
   # `key_layer` = [B*T, N*H]
-  key_layer = tf.keras.layers.Dense(
+  key_layer = tf.layers.dense(
       to_tensor_2d,
       num_attention_heads * size_per_head,
       activation=key_act,
@@ -679,7 +688,7 @@ def attention_layer(from_tensor,
       kernel_initializer=create_initializer(initializer_range))
 
   # `value_layer` = [B*T, N*H]
-  value_layer = tf.keras.layers.Dense(
+  value_layer = tf.layers.dense(
       to_tensor_2d,
       num_attention_heads * size_per_head,
       activation=value_act,
