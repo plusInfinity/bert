@@ -27,7 +27,7 @@ import numpy as np
 import six
 import tensorflow as tf
 
-factor_size = 128
+factor_size = 256
 
 class BertConfig(object):
   """Configuration for `BertModel`."""
@@ -407,16 +407,10 @@ def embedding_lookup(input_ids,
   if input_ids.shape.ndims == 2:
     input_ids = tf.expand_dims(input_ids, axis=[-1])
 
-  embedding_table_0 = tf.get_variable(
-      name=word_embedding_name + '_0',
-      shape=[vocab_size, factor_size],
+  embedding_table = tf.get_variable(
+      name=word_embedding_name,
+      shape=[vocab_size, embedding_size],
       initializer=create_initializer(initializer_range))
-  embedding_table_1 = tf.get_variable(
-      name=word_embedding_name + '_1',
-      shape=[factor_size, embedding_size],
-      initializer=create_initializer(initializer_range))
-
-  embedding_table = tf.matmul(embedding_table_0, embedding_table_1)
 
   flat_input_ids = tf.reshape(input_ids, [-1])
   if use_one_hot_embeddings:
