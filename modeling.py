@@ -27,7 +27,7 @@ import numpy as np
 import six
 import tensorflow as tf
 
-factor_size = 64
+factor_size = 128
 
 class BertConfig(object):
   """Configuration for `BertModel`."""
